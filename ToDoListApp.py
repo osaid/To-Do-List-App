@@ -1,57 +1,79 @@
 import csv
 
-FILENAME = "TaskList.csv"  # Defined the filename for the task list
+FILENAME = "TaskList.csv"
 
 
 def add_Task():
     print("Add Tasks\n")
-    # Option to add a new task or return to the menu
     addTaskOptions = int(input("1.Add New Task\n2.Return to menu\n"))
-    if addTaskOptions == 1:  # If the user chooses to add a new task
+    if addTaskOptions == 1:
         task = input("Enter a new task: ")
+        status = "Not Started"  # Default status for new tasks
+
+        # Read existing tasks to determine the next ID
         try:
             with open(FILENAME, "r", newline="") as file:
-                reader = csv.reader(file)  # Read the CSV file
-                rows = list(reader)  # Read all rows into a list
-                if len(rows) == 0:  # If the file is empty, start with ID 1
+                reader = csv.reader(file)
+                rows = [row for row in reader if row]  # Skip empty rows
+                if len(rows) == 0:  # File is empty, start with ID 1
                     new_id = 1
+                    # Write header if it's a brand new file
+                    with open(FILENAME, "w", newline="") as file_write:
+                        writer = csv.writer(file_write)
+                        writer.writerow(["ID", "Task", "Status"])
                 else:
-                    new_id = len(rows)  # Get the last ID and increment it by 1
-
-        except FileNotFoundError:  # If the file does not exist, create it
-            with open(FILENAME, "w", newline="") as file:  # Create the file and write the header
-                writer = csv.writer(file)  # Write the header
-                writer.writerow(["ID", "Task"])  # Write the header row
+                    # If header exists, subtract 1 to get actual number of tasks
+                    new_id = len(rows) if rows[0][0] != "ID" else len(rows)
+        except FileNotFoundError:
+            # If file doesn't exist, create it and write header
+            with open(FILENAME, "w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(["ID", "Task", "Status"])
             new_id = 1
 
-        with open(FILENAME, "a", newline="") as file:  # Open the file in append mode
-            writer = csv.writer(file)  # Create a CSV writer object
-            writer.writerow([new_id, task])  # Write the new task with its ID
-        print(f"Task added: {new_id} - {task}")  # Confirmation message
+        # Append the new task with ID and status
+        with open(FILENAME, "a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow([new_id, task, status])
+
+        print(f"Task added: {new_id} - {task} - {status}")
+
     elif addTaskOptions == 2:
-        return  # If the user chooses to return to the menu
+        return
     else:
         print("Invalid Option")
-        return  # If the user enters an invalid option, return to add task menu
+        return
 
 
 def view_Task():
     print("View Tasks\n")
-
     viewTaskOptions = int(input("1.View All Tasks\n2.Return to menu\n"))
-    if viewTaskOptions == 1:  # If the user chooses to view all tasks
+
+    if viewTaskOptions == 1:
         try:
-            with open(FILENAME, "r", newline="") as file:  # Open the CSV file for reading
-                reader = csv.reader(file)  # Create a CSV reader object
-                next(reader)  # Skip the header row
-                tasks = list(reader)  # Read all tasks into a list
-                if not tasks:  # If there are no tasks, print a message
+            with open(FILENAME, "r", newline="") as file:
+                reader = csv.reader(file)
+                tasks = [row for row in reader if row]  # Skip empty rows
+
+                if len(tasks) <= 1:  # Only header or empty
                     print("No tasks found.")
-                else:
-                    for task in tasks:  # Iterate through each task and print it
-                        print(f"ID: {task[0]}, Task: {task[1]}")
-        except FileNotFoundError:  # If the file does not exist, print a message
+                    return
+
+                header = tasks[0]
+                data_rows = tasks[1:]  # Exclude header
+
+                # Upgrade old tasks that have only ID and Task
+                for row in data_rows:
+                    if len(row) < 3:  # Status missing
+                        row.append("Not Started")
+
+                # Print tasks
+                for task in data_rows:
+                    print(f"ID: {task[0]}, Task: {task[1]}, Status: {task[2]}")
+
+        except FileNotFoundError:
             print("No tasks found. Please add a task first.")
+
     elif viewTaskOptions == 2:
         return
     else:
@@ -59,8 +81,29 @@ def view_Task():
         return
 
 
-def complete_Task():
+def complete_Task():  # This function displays all the tasks and asks the user to input 1 if they want to input the ID of the task they want to mark as complete or 2 to return to the menu
     print("You're On Complete Tasks")
+    try:
+        with open(FILENAME, "r", newline="") as file:
+            reader = csv.reader(file)
+            tasks = [row for row in reader if row]  # Skip empty rows
+
+            if len(tasks) <= 1:  # Only header or empty
+                print("No tasks found.")
+                return
+
+            header = tasks[0]
+            data_rows = tasks[1:]  # Exclude header
+
+            # Print tasks
+            for task in data_rows:
+                print(f"ID: {task[0]}, Task: {task[1]}, Status: {task[2]}")
+    except FileNotFoundError:
+        print("No tasks found. Please add a task first.")
+        return
+
+    completeTaskOptions = int(input("1.Complete Task\n2.Return to menu\n"))
+    if completeTaskOptions == 1:
 
 
 def delete_Task():
