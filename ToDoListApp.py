@@ -103,9 +103,12 @@ def view_Task():
                     input("Please enter the id of the task name you'd like to change: "))
                 newTaskName = input("Please enter new task name: ").title()
 
+                header = tasks[0]
+                dataRows = tasks[1:]
+
                 changedTask = []
                 unchangedTask = []
-                for task in tasks:
+                for task in dataRows:
                     if task[0] in editTaskNameOptions:
                         task[1] = newTaskName
                         changedTask.append(task)
@@ -113,11 +116,10 @@ def view_Task():
                         unchangedTask.append(task)
 
                 with open(FILENAME, "w", newline="") as file:
-                    allTasks = changedTask + unchangedTask
+                    allTasks = [header] + unchangedTask + changedTask
                     writer = csv.writer(file)
                     writer.writerows(allTasks)
                     print(allTasks)
-                    # solve issue: when i change task name, it changes to "Task"
                     print("Task Name Changed Successfully")
 
         except FileNotFoundError:
